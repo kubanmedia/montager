@@ -1,0 +1,36 @@
+# Dart and Flutter specific
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.symlinks
+
+# Build outputs
+build/
+web/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/Flutter-Debug.xcconfig
+ios/Flutter/Flutter-Release.xcconfig
+ios/Flutter/Flutter-profile.xcconfig
+ios/Flutter/Flutter.app
+ios/Flutter/OutOfProcessDebugger
+
+# IDEs and editors
+.vscode/
+.idea*
+*.swp
+*.swo
+*~
+
+# Miscellaneous
+.DS_Store
+.env
+*.log
+tmp*/
+*.temp
+*.tmp
+
+# Flutter web build
+flutter-web-build/

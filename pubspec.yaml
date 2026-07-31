@@ -1,0 +1,59 @@
+name: montager
+description: AI Video Editor Agent - Automatically creates complete videos from user's existing raw footage using multimodal AI.
+publish_to: 'none'
+version: 0.1.0+1
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  # State management
+  riverpod: ^2.3.6
+  flutter_riverpod: ^2.3.6
+  # Dependency injection
+  get_it: ^7.6.0
+  # Data persistence
+  drift: ^2.9.0
+  sqlite3_flutter_libs: ^0.5.8
+  path_provider: ^2.0.11
+  path: ^1.8.3
+  # Async handling
+  async: ^2.10.0
+  # Logging
+  logger: ^1.4.0
+  # For file picking
+  file_picker: ^5.3.2
+  # For video player preview
+  video_player: ^2.6.0
+  # For sharing
+  share_plus: ^7.0.2
+  # For path handling on Android
+  path_provider_android: ^2.0.23
+  # For path handling on iOS
+  path_provider_ios: ^2.0.16
+  # For JSON handling
+  json_annotation: ^4.8.1
+  # For equatable (value-based equality)
+  equatable: ^2.0.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  # Code generation for drift
+  drift_dev: ^2.9.0
+  build_runner: ^2.4.6
+  # JSON serialization
+  json_serializable: ^6.7.1
+  # Testing
+  mocktail: ^0.3.0
+  test: ^1.24.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icons/
+    - assets/images/
+    - assets/images/logo.png

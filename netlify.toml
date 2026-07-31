@@ -1,0 +1,17 @@
+[build]
+  command = "flutter build web --release --web-renderer canvaskit"
+  publish = "build/web"
+
+[context.production]
+  command = "flutter build web --release --web-renderer canvaskit"
+
+[context.deploy-preview]
+  command = "flutter build web --release --web-renderer canvaskit"
+
+[context.branch-deploy]
+  command = "flutter build web --release --web-renderer canvaskit"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
