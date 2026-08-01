@@ -2,17 +2,17 @@
   "version": 2,
   "builds": [
     {
-      "src": "flutter-web-build/**",
+      "src": "public/**",
       "use": "@vercel/static",
       "config": {
-        "distDir": "flutter-web-build"
+        "distDir": "public"
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/flutter-web-build/$1"
+      "dest": "/public/$1"
     }
   ]
 }
