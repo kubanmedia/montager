@@ -2,41 +2,149 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/video/video_processing_service.dart';
 import '../services/ai/providers/ai_provider.dart';
 import '../services/ai/providers/ai_provider.dart' show AIProviderFactory;
+import '../services/security/api_key_manager.dart';
 
-// Provider for the AI provider - this would typically be configured based on user settings
-final aiProviderProvider = Provider<AIProvider>((ref) {
-  // In a real app, this would come from user preferences
-  // For now, we'll return a mock provider or throw if not configured
-  throw UnimplementedError('AI provider not configured. Please set up AI provider in settings.');
+// Provider for the API key manager
+final apiKeyManagerProvider = Provider<ApiKeyManager>((ref) {
+  return ApiKeyManager();
 });
 
-// Provider for the video processing service
-final videoProcessingServiceProvider = Provider<VideoProcessingService>((ref) {
-  final aiProvider = ref.watch(aiProviderProvider);
-  // In a real app, we would get the configured provider from settings
-  // For now, we'll return a placeholder or handle the error gracefully
-  return VideoProcessingService(
-    aiProvider: aiProvider,
-  );
-});
-
-// Helper provider to get a configured AI provider based on settings
-final configuredAiProviderProvider = Provider.family<AIProvider, Map<String, dynamic>>(
-  (ref, settings) {
-    final providerType = settings['providerType'] as String;
-    final config = Map<String, dynamic>.from(settings['config'] as Map);
-    return AIProviderFactory.createProvider(providerType, config);
+// Provider for getting a configured AI provider based on stored credentials
+final configuredAiProviderProvider = FutureProvider.family<AIProvider?, String>(
+  (ref, providerName) async {
+    final apiKeyManager = ref.watch(apiKeyManagerProvider);
+    
+    // Map provider names to storage keys
+    String storageKey;
+    switch (providerName.toLowerCase()) {
+      case 'ollama cloud':
+      case 'ollamcloud':
+        storageKey = 'ollama_cloud';
+        break;
+      case 'together ai':
+      case 'togetherai':
+      case 'together':
+        storageKey = 'together_ai';
+        break;
+      default:
+        return null; // Unsupported provider
+    }
+    
+    // Check if we have an API key stored
+    final hasApiKey = await apiKeyManager.hasApiKey(storageKey);
+    if (!hasApiKey) {
+      return null; // No API key configured
+    }
+    
+    // Get the API key
+    final apiKey = await apiKeyManager.getApiKey(storageKey);
+    if (apiKey == null) {
+      return null;
+    }
+    
+    try {
+      // Create the AI provider using our factory
+      final aiProvider = AIProviderFactory.createProvider(
+        providerName,
+        {
+          'apiKey': apiKey,
+        },
+      );
+      
+      return aiProvider;
+    } catch (e) {
+      return null; // Failed to create provider
+    }
   },
 );
 
-// Helper provider to get a video processing service with specific settings
-final videoProcessingServiceWithSettingsProvider = Provider.family<VideoProcessingService, Map<String, dynamic>>(
-  (ref, settings) {
-    final providerType = settings['providerType'] as String;
-    final config = Map<String, dynamic>.from(settings['config'] as Map);
-    final aiProvider = AIProviderFactory.createProvider(providerType, config);
+// Provider for the video processing service that uses the configured AI provider
+final videoProcessingServiceProvider = FutureProvider.family<VideoProcessingService?, String>(
+  (ref, providerName) async {
+    final aiProvider = await ref.watch(configuredAiProviderProvider(providerName).future);
+    
+    if (aiProvider == null) {
+      return null; // No AI provider configured or failed to create
+    }
+    
     return VideoProcessingService(
       aiProvider: aiProvider,
     );
   },
 );
+
+// Provider for getting all available AI providers that have credentials configured
+final configuredProvidersProvider = FutureProvider<List<String>>((ref) async {
+  final apiKeyManager = ref.watch(apiKeyManagerProvider);
+  
+  // Check which providers have API keys configured
+  final configured = <String>[];
+  
+  // Check Ollama Cloud
+  final hasOllamaKey = await apiKeyManager.hasApiKey('ollama_cloud');
+  if (hasOllamaKey) {
+    configured.add('Ollama Cloud');
+  }
+  
+  // Check Together AI
+  final hasTogetherKey = await apiKeyManager.hasApiKey('together_ai');
+  if (hasTogetherKey) {
+    configured.add('Together AI');
+  }
+  
+  return configured;
+});
+
+// Notifier for managing API keys
+class ApiKeyManagerNotifier extends StateNotifier<Map<String, bool>> {
+  final ApiKeyManager _apiKeyManager;
+  
+  ApiKeyManagerNotifier(this._apiKeyManager) : super({}) {
+    _loadInitialState();
+  }
+  
+  Future<void> _loadInitialState() async {
+    final providers = ['ollama_cloud', 'together_ai'];
+    final status = <String, bool>{};
+    
+    for (final provider in providers) {
+      final hasKey = await _apiKeyManager.hasApiKey(provider);
+      status[provider] = hasKey;
+    }
+    
+    state = status;
+  }
+  
+  Future<void> storeApiKey(String provider, String apiKey) async {
+    await _apiKeyManager.storeApiKey(provider, apiKey);
+    await _loadInitialState();
+  }
+  
+  Future<bool> updateApiKey(String provider, String apiKey) async {
+    final result = await _apiKeyManager.updateApiKey(provider, apiKey);
+    if (result) {
+      await _loadInitialState();
+    }
+    return result;
+  }
+  
+  Future<void> deleteApiKey(String provider) async {
+    await _apiKeyManager.deleteApiKey(provider);
+    await _loadInitialState();
+  }
+  
+  Future<String?> getApiKey(String provider) async {
+    return await _apiKeyManager.getApiKey(provider);
+  }
+  
+  Future<bool> hasApiKey(String provider) async {
+    return await _apiKeyManager.hasApiKey(provider);
+  }
+}
+
+// Provider for the API key notifier
+final apiKeyManagerNotifierProvider =
+    StateNotifierProvider<ApiKeyManagerNotifier, Map<String, bool>>((ref) {
+  final apiKeyManager = ref.watch(apiKeyManagerProvider);
+  return ApiKeyManagerNotifier(apiKeyManager);
+});

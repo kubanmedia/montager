@@ -69,7 +69,7 @@ class _AIProviderSelectorState extends State<AIProviderSelector> {
                 'Ollama (Local Server)',
                 'Connect to your local Ollama instance\nRequires Ollama running on device or network',
                 'Ollama (Local)',
-                Icons.server,
+                Icons.computer,
                 Colors.green,
               ),
               _buildLocalLLMOption(
@@ -94,11 +94,12 @@ class _AIProviderSelectorState extends State<AIProviderSelector> {
                   ),
                 ),
               ),
-              _buildCloudLLM',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
+              _buildCloudLLMOption(
+                'Together AI',
+                'Open-source models hosted on Together\nLlama 3.3, Llama 3.2 Vision, Qwen, etc.',
+                'Together AI',
+                Icons.cloud,
+                Colors.indigo,
               ),
               _buildCloudLLMOption(
                 'OpenAI GPT-4V',
@@ -109,7 +110,7 @@ class _AIProviderSelectorState extends State<AIProviderSelector> {
               ),
               _buildCloudLLMOption(
                 'Google Gemini Pro',
-                'Google\\'s latest multimodal model',
+                'Google\\\'s latest multimodal model',
                 'Google Gemini',
                 Icons.cloud,
                 Colors.blue,
@@ -123,7 +124,7 @@ class _AIProviderSelectorState extends State<AIProviderSelector> {
               ),
               _buildCloudLLMOption(
                 'xAI Grok',
-                'Elon Musk\\'s AI model',
+                'Elon Musk\\\'s AI model',
                 'Grok (xAI)',
                 Icons.cloud,
                 Colors.blue,

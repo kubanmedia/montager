@@ -1,5 +1,9 @@
 import 'dart:typed_data';
 
+import 'together_provider.dart';
+
+import 'ai_provider_factory.dart';
+
 /// Abstract base class for AI providers
 abstract class AIProvider {
   /// Initializes the provider with configuration
@@ -533,27 +537,38 @@ class OllamaLocalProvider extends LocalLLMProvider {
     required double targetDuration,
   }) async {
     await Future.delayed(const Duration(seconds: 3));
-    
+
+    final clamped = targetDuration.clamp(10.0, 300.0);
+    final segment = clamped / 3.0;
     return {
       'timeline': [
         {
           'videoIndex': 0,
           'startTime': 0.0,
-          'endTime': targetDuration.clamp(5.0, 30.0),
+          'endTime': segment,
           'transition': 'fade',
-          'reason': 'reason': 'Local AI decision',
+          'reason': 'Local AI decision (opening)',
+        },
+        {
+          'videoIndex': 0,
+          'startTime': segment,
+          'endTime': segment * 2,
+          'transition': 'slide',
+          'reason': 'Local AI decision (middle)',
+        },
+        {
+          'videoIndex': 0,
+          'startTime': segment * 2,
+          'endTime': clamped,
+          'transition': 'fade',
+          'reason': 'Local AI decision (closing)',
         },
       ],
-      'totalDuration': targetDuration.clamp(10.0, 300.0),
-      'suggestedTitle': 'Ollama Processed Video',
-      'recommendedMusic': 'ambient',
-      's: 'Local AI decision',
-        },
-      ],
-      'totalDuration': targetDuration.clamp(10.0, 300.0),
+      'totalDuration': clamped,
       'suggestedTitle': 'Ollama LLM Video',
       'recommendedMusic': 'ambient',
       'suggestedNarration': null,
+      'model': _modelName,
     };
   }
 
@@ -691,6 +706,12 @@ class AIProviderFactory {
         return HuggingFaceProvider(
           apiKey: config['apiKey'] ?? '',
           apiUrl: config['apiUrl'],
+        );
+      case 'Together AI':
+        return TogetherProvider(
+          apiKey: config['apiKey'] ?? '',
+          textModel: config['textModel'],
+          visionModel: config['visionModel'],
         );
       case 'Ollama (Local)':
         return OllamaLocalProvider(

@@ -4,8 +4,8 @@ import 'package:video_player/video_player.dart';
 
 class VideoPreviewScreen extends ConsumerStatefulWidget {
   final String videoPath;
-  final String> final String videoPath;
->  
+  final Map<String, dynamic> editPlan;
+
   const VideoPreviewScreen({
     super.key,
     required this.videoPath,
@@ -30,10 +30,7 @@ class _VideoPreviewScreenState extends ConsumerState<VideoPreviewScreen> {
   }
 
   Future<void> _initializeVideo() async {
-    _controller = VideoPlayerController.file(
-      // In a real app, we'd use the actual file path
-      // For now, we'll use a placeholder or network video for demo
-      VideoPlayerController.network(
+    _controller = VideoPlayerController.network(
         'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
       )..initialize().then((_) {
           // Ensure the first frame is shown after the video is initialized
@@ -41,6 +38,45 @@ class _VideoPreviewScreenState extends ConsumerState<VideoPreviewScreen> {
             _isInitialized = true;
           });
         });
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _togglePlay() {
+    if (_controller.value.isPlaying) {
+      _controller.pause();
+    } else {
+      _controller.play();
+    }
+    setState(() => _isPlaying = !_isPlaying);
+  }
+
+  void _toggleMute() {
+    setState(() => _isMuted = !_isMuted);
+    _controller.setVolume(_isMuted ? 0.0 : _volume);
+  }
+
+  void _setVolume(double volume) {
+    setState(() => _volume = volume);
+    if (!_isMuted) {
+      _controller.setVolume(volume);
+    }
+  }
+
+  void _reprocess() {
+    // TODO: Navigate back to project setup with current settings
+  }
+
+  void _exportVideo() {
+    // TODO: Implement sharing/export functionality
+  }
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = twoDigits(duration.inHours);
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    return '$hours:$minutes:$seconds';
   }
 
   @override

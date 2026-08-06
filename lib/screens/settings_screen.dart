@@ -8,14 +8,12 @@ class SettingsScreen extends ConsumerStatefulWidget {
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends ConsumerState<SettingsSettingscreenStateSettingsSettingsStateScreen
-
-  @super.initState();
-  }
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
-  Widget build(BuildContext context) {
-  const SettingsScreen({super.key});
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +31,7 @@ class _SettingsScreenState extends ConsumerState<SettingsSettingscreenStateSetti
             'AI Provider Settings',
             [
               _buildSettingsTile(
-                Icons.ai,
+                Icons.smartphone,
                 'Default AI Provider',
                 'OpenAI GPT-4V',
                 onTap: () {
@@ -179,11 +177,11 @@ class _SettingsScreenState extends ConsumerState<SettingsSettingscreenStateSetti
                   fontWeight: FontWeight.bold,
                 ),
           ),
-        ],
-      ) + Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        child: Column(children: children),
-      );
+        ),
+        ...children,
+        const SizedBox(height: 16),
+      ],
+    );
   }
 
   Widget _buildSettingsTile(
