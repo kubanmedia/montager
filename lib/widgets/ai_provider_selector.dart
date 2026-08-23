@@ -136,6 +136,13 @@ class _AIProviderSelectorState extends State<AIProviderSelector> {
                 Icons.cloud,
                 Colors.blue,
               ),
+              _buildCloudLLMOption(
+                'Ollama Cloud',
+                'Ollama models hosted in the cloud\nLlama 3, Llava, Phi-3, Mistral, etc.',
+                'Ollama Cloud',
+                Icons.cloud,
+                Colors.green,
+              ),
               
               const Divider(height: 32),
               
