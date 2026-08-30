@@ -18,9 +18,9 @@ flutter config --enable-web
 echo "📦 Getting Flutter dependencies..."
 flutter pub get
 
-# Build web app
+# Build web app (removed --web-renderer flag for compatibility with older Flutter versions)
 echo "🏗️ Building Flutter web app..."
-flutter build web --release --web-renderer canvaskit
+flutter build web --release
 
 # Verify build output
 if [ ! -d "build/web" ]; then
