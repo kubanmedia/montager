@@ -11,14 +11,25 @@ if ! command -v flutter &> /dev/null; then
     flutter doctor --no-color
 fi
 
-# Enable web support
+# Create a fresh Flutter web project to ensure proper configuration
+echo "📱 Setting up Flutter web project..."
+mkdir -p /tmp/flutter_web_app
+cp -r * /tmp/flutter_web_app/
+cd /tmp/flutter_web_app
+
+# Configure specifically for web
 flutter config --enable-web
+flutter create . --platforms=web --no-pub --force
+
+# Copy back the web-configured files, preserving our source code
+cd /vercel/workspace
+cp -r /tmp/flutter_web_app/* .
 
 # Get dependencies
 echo "📦 Getting Flutter dependencies..."
 flutter pub get
 
-# Build web app (removed --web-renderer flag for compatibility with older Flutter versions)
+# Build web app
 echo "🏗️ Building Flutter web app..."
 flutter build web --release
 
