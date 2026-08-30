@@ -19,11 +19,23 @@ cd /tmp/flutter_web_app
 
 # Configure specifically for web
 flutter config --enable-web
-flutter create . --platforms=web --no-pub --force
+flutter create . --platforms=web
 
 # Copy back the web-configured files, preserving our source code
+# We need to be careful to preserve our source code while getting the web configuration
 cd /vercel/workspace
-cp -r /tmp/flutter_web_app/* .
+
+# First, let's get the web-specific configuration files
+cp -r /tmp/flutter_web_app/.ios .
+cp -r /tmp/flutter_web_app/.linux .
+cp -r /tmp/flutter_web_app/.macos .
+cp -r /tmp/flutter_web_app/.web .
+cp -r /tmp/flutter_web_app/android .
+cp -r /tmp/flutter_web_app/build .
+cp -r /tmp/flutter_web_app/ios .
+cp -r /tmp/flutter_web_app/linux .
+cp -r /tmp/flutter_web_app/macos .
+cp -r /tmp/flutter_web_app/web .
 
 # Get dependencies
 echo "📦 Getting Flutter dependencies..."
