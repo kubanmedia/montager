@@ -19,9 +19,8 @@ mkdir -p "$BUILD_DIR"
 
 # Copy only essential files for Flutter web build
 echo "Copying project files to build directory..."
-cp -r montager/{lib,assets} "$BUILD_DIR/"
-cp montager/pubspec.yaml "$BUILD_DIR/"
-cp montager/pubspec.lock "$BUILD_DIR/"
+cp -r lib assets "$BUILD_DIR/"
+cp pubspec.yaml pubspec.lock "$BUILD_DIR/"
 
 # Change to build directory
 cd "$BUILD_DIR"
