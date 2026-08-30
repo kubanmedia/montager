@@ -23,7 +23,7 @@ flutter create . --platforms=web
 
 # Copy back the web-configured files, preserving our source code
 # We need to be careful to preserve our source code while getting the web configuration
-cd /vercel/workspace
+cd -
 
 # First, let's get the web-specific configuration files
 cp -r /tmp/flutter_web_app/.ios .
