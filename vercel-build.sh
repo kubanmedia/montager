@@ -11,26 +11,30 @@ if ! command -v flutter &> /dev/null; then
     flutter doctor --no-color
 fi
 
-# Create a clean build directory
-BUILD_DIR="/tmp/flutter_build"
-echo "Creating clean build directory at $BUILD_DIR"
-rm -rf "$BUILD_DIR"
-mkdir -p "$BUILD_DIR"
+# Ensure we're in the repository directory
+cd /vercel/workspace
 
-# Copy only essential files for Flutter web build
-echo "Copying project files to build directory..."
-cp -r lib "$BUILD_DIR/"
-if [ -d "assets" ]; then
-    cp -r assets "$BUILD_DIR/"
-fi
-cp pubspec.yaml pubspec.lock "$BUILD_DIR/"
-
-# Change to build directory
-cd "$BUILD_DIR"
-
-# Ensure web support is enabled
-echo "Ensuring web platform support is configured..."
+# EXPLICITLY RECONFIGURE FOR WEB
+echo "Reconfiguring project for web platform..."
 flutter config --enable-web
+
+# Verify web configuration is recognized
+echo "Verifying web platform configuration..."
+WEB_ENABLED=$(flutter config | grep "enable-web:" | awk '{print $2}')
+if [ "$WEB_ENABLED" = "true" ]; then
+    echo "✓ Web platform support is enabled"
+else
+    echo "✗ Web platform support is not enabled, attempting to enable..."
+    flutter config --enable-web
+    # Verify again
+    WEB_ENABLED=$(flutter config | grep "enable-web:" | awk '{print $2}')
+    if [ "$WEB_ENABLED" = "true" ]; then
+        echo "✓ Web platform support now enabled"
+    else
+        echo "✗ Failed to enable web platform support"
+        exit 1
+    fi
+fi
 
 # Get dependencies
 echo "Getting Flutter dependencies..."
@@ -40,10 +44,11 @@ flutter pub get
 echo "Building Flutter web app..."
 flutter build web --release
 
-# Copy output to Vercel's expected location
-echo "Copying build output to Vercel location..."
-mkdir -p /vercel/workspace/build/web
-cp -r build/web/* /vercel/workspace/build/web/
+# Verify build output
+if [ ! -d "build/web" ]; then
+    echo "✗ Error: Flutter web build failed - build/web directory not found"
+    exit 1
+fi
 
-echo "Flutter web build completed successfully!"
-echo "Build output copied to Vercel workspace"
+echo "✓ Flutter web build completed successfully!"
+echo "Build output: $(du -sh build/web | cut -f1)"
