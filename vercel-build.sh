@@ -11,9 +11,6 @@ if ! command -v flutter &> /dev/null; then
     flutter doctor --no-color
 fi
 
-# Ensure we're in the repository root
-cd /vercel/workspace
-
 # Ensure web support is enabled
 echo "🌐 Ensuring web support is enabled..."
 flutter config --enable-web
