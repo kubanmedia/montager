@@ -15,16 +15,25 @@ fi
 echo "🧹 Cleaning Flutter cache..."
 flutter clean
 
-# Ensure web support is enabled
-echo "🌐 Ensuring web support is enabled..."
+# EXPLICITLY ENSURE WEB PLATFORM SUPPORT
+echo "🌐 Ensuring web platform support is configured..."
 flutter config --enable-web
+
+# Check if web platform is configured, and if not, add it
+echo "🔍 Verifying web platform configuration..."
+if flutter config | grep -q "enable-web: true"; then
+    echo "✅ Web platform support is enabled"
+else
+    echo "⚠️ Web platform support not found, enabling..."
+    flutter config --enable-web
+fi
 
 # Get dependencies
 echo "📦 Getting Flutter dependencies..."
 flutter pub get
 
 # Build web app
-echo "🏗️ Building Flutter web app..."
+echo("🏗️ Building Flutter web app...")
 flutter build web --release
 
 # Verify build output
