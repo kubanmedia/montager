@@ -21,7 +21,7 @@ echo "Getting Flutter dependencies..."
 flutter pub get
 
 # Build web app
-echo("Building Flutter web app...")
+echo "Building Flutter web app..."
 flutter build web --release
 
 # Verify build output
