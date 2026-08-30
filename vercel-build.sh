@@ -53,9 +53,8 @@ if [ ! -d "build/web" ]; then
     exit 1
 fi
 
-# Copy the built web app to where Vercel expects it
-mkdir -p /vercel/workspace/build/web
-cp -r build/web/* /vercel/workspace/build/web/
+# Copy the built web app to the current directory for Vercel
+cp -r build/web/* ../
 
 echo "✅ Flutter web build completed successfully!"
 echo "📁 Build output: $(du -sh build/web | cut -f1)"
