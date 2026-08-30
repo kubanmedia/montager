@@ -11,22 +11,24 @@ if ! command -v flutter &> /dev/null; then
     flutter doctor --no-color
 fi
 
-# Clean any potential Flutter cache issues
-echo "Cleaning Flutter cache..."
-flutter clean
+# Create a clean build directory
+BUILD_DIR="/tmp/flutter_build"
+echo "Creating clean build directory at $BUILD_DIR"
+rm -rf "$BUILD_DIR"
+mkdir -p "$BUILD_DIR"
 
-# EXPLICITLY ENSURE WEB PLATFORM SUPPORT
+# Copy only essential files for Flutter web build
+echo "Copying project files to build directory..."
+cp -r montager/{lib,assets} "$BUILD_DIR/"
+cp montager/pubspec.yaml "$BUILD_DIR/"
+cp montager/pubspec.lock "$BUILD_DIR/"
+
+# Change to build directory
+cd "$BUILD_DIR"
+
+# Ensure web support is enabled
 echo "Ensuring web platform support is configured..."
 flutter config --enable-web
-
-# Check if web platform is configured, and if not, add it
-echo "Verifying web platform configuration..."
-if flutter config | grep -q "enable-web: true"; then
-    echo "Web platform support is enabled"
-else
-    echo "Web platform support not found, enabling..."
-    flutter config --enable-web
-fi
 
 # Get dependencies
 echo "Getting Flutter dependencies..."
@@ -36,11 +38,10 @@ flutter pub get
 echo "Building Flutter web app..."
 flutter build web --release
 
-# Verify build output
-if [ ! -d "build/web" ]; then
-    echo "Error: Flutter web build failed - build/web directory not found"
-    exit 1
-fi
+# Copy output to Vercel's expected location
+echo "Copying build output to Vercel location..."
+mkdir -p /vercel/workspace/build/web
+cp -r build/web/* /vercel/workspace/build/web/
 
 echo "Flutter web build completed successfully!"
-echo "Build output: $(du -sh build/web | cut -f1)"
+echo "Build output copied to Vercel workspace"
