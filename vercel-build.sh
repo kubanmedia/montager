@@ -11,9 +11,6 @@ if ! command -v flutter &> /dev/null; then
     flutter doctor --no-color
 fi
 
-# Ensure we're in the repository directory
-cd /vercel/workspace
-
 # ENSURE WEB PLATFORM IS SET UP (not just enabled)
 echo "Ensuring web platform is properly set up..."
 # This will add web platform support if it's missing
