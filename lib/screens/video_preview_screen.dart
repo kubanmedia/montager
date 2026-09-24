@@ -100,7 +100,9 @@ class _VideoPreviewScreenState extends ConsumerState<VideoPreviewScreen> {
       return;
     }
     try {
-      await Share.shareXFiles([XFile(path)], text: 'Created with Montager');
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(path)], text: 'Created with Montager'),
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

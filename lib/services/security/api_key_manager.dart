@@ -12,9 +12,7 @@ class ApiKeyManager {
   final FlutterSecureStorage _storage;
   
   ApiKeyManager() : _storage = const FlutterSecureStorage(
-        aOptions: AndroidOptions(
-          encryptedSharedPreferences: true,
-        ),
+        aOptions: AndroidOptions(),
       );
 
   /// Stores an API key for the specified provider

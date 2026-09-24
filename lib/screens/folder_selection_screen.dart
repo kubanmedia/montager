@@ -69,13 +69,10 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
   /// access to a filesystem folder.
   Future<void> _selectFilesWeb() async {
     try {
-      final result = await FilePicker.pickFiles(
-        allowMultiple: true,
-        type: FileType.video,
-      );
+      final files = await FilePicker.pickFiles(type: FileType.video);
 
-      if (result != null && result.files.isNotEmpty) {
-        final names = result.files.map((f) => f.name).toList();
+      if (files.isNotEmpty) {
+        final names = files.map((f) => f.name).toList();
         if (mounted) {
           setState(() {
             _selectedFolderPath = 'Web selection (${names.length} videos)';
@@ -110,12 +107,9 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
   Future<void> _selectFilesNative() async {
     setState(() => _isScanning = true);
     try {
-      final result = await FilePicker.pickFiles(
-        allowMultiple: true,
-        type: FileType.video,
-      );
-      if (result != null && result.files.isNotEmpty) {
-        final paths = result.files
+      final files = await FilePicker.pickFiles(type: FileType.video);
+      if (files.isNotEmpty) {
+        final paths = files
             .map((f) => f.path)
             .whereType<String>()
             .where((e) => e.isNotEmpty)
