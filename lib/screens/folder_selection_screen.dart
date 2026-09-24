@@ -35,7 +35,7 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
         return;
       }
 
-      String? directoryPath = await FilePicker.platform.getDirectoryPath();
+      String? directoryPath = await FilePicker.getDirectoryPath();
       
       if (directoryPath != null && directoryPath.isNotEmpty) {
         setState(() {
@@ -69,7 +69,7 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
   /// access to a filesystem folder.
   Future<void> _selectFilesWeb() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         allowMultiple: true,
         type: FileType.video,
       );
@@ -110,7 +110,7 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
   Future<void> _selectFilesNative() async {
     setState(() => _isScanning = true);
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         allowMultiple: true,
         type: FileType.video,
       );
