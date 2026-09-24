@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoPreviewScreen extends ConsumerStatefulWidget {
@@ -88,10 +89,25 @@ class _VideoPreviewScreenState extends ConsumerState<VideoPreviewScreen> {
     Navigator.of(context).pop();
   }
 
-  void _exportVideo() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Export functionality coming soon!')),
-    );
+  Future<void> _exportVideo() async {
+    final path = widget.videoPath;
+    if (path.isEmpty || path.startsWith('http')) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Nothing to export yet.')),
+        );
+      }
+      return;
+    }
+    try {
+      await Share.shareXFiles([XFile(path)], text: 'Created with Montager');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $e')),
+        );
+      }
+    }
   }
 
   String _formatDuration(Duration duration) {

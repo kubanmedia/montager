@@ -32,7 +32,7 @@ dependencies:
   # Logging
   logger: ^1.4.0
   # For file picking
-  file_picker: ^5.3.2
+  file_picker: ^8.3.7
   # For video player preview
   video_player: ^2.6.0
   # For sharing

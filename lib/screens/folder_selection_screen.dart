@@ -18,6 +18,7 @@ class FolderSelectionScreen extends ConsumerStatefulWidget {
 class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
   String? _selectedFolderPath;
   List<String> _selectedFileNames = [];
+  List<String> _selectedSourcePaths = [];
   String? _selectedProvider;
   int _videoCount = 0;
   Duration _totalDuration = Duration.zero;
@@ -39,6 +40,8 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
       if (directoryPath != null && directoryPath.isNotEmpty) {
         setState(() {
           _selectedFolderPath = directoryPath;
+          _selectedFileNames = [];
+          _selectedSourcePaths = [];
           _isScanning = false;
         });
         
@@ -77,9 +80,57 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
           setState(() {
             _selectedFolderPath = 'Web selection (${names.length} videos)';
             _selectedFileNames = names;
+            _selectedSourcePaths = [];
             _videoCount = names.length;
             // Estimate duration - in reality we'd get this from metadata
             _totalDuration = Duration(seconds: 30 * names.length);
+            _isScanning = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() => _isScanning = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No videos selected')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isScanning = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error selecting videos: $e')),
+        );
+      }
+    }
+  }
+
+  /// Native fallback: pick individual video files (reliable on Android
+  /// where folder access may be restricted).
+  Future<void> _selectFilesNative() async {
+    setState(() => _isScanning = true);
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.video,
+      );
+      if (result != null && result.files.isNotEmpty) {
+        final paths = result.files
+            .map((f) => f.path)
+            .whereType<String>()
+            .where((e) => e.isNotEmpty)
+            .toList();
+        if (paths.isEmpty) {
+          throw Exception('Picked files have no accessible paths.');
+        }
+        if (mounted) {
+          setState(() {
+            _selectedFolderPath = '${paths.length} picked videos';
+            _selectedFileNames =
+                paths.map((e) => p.basename(e)).toList();
+            _selectedSourcePaths = paths;
+            _videoCount = paths.length;
+            _totalDuration = Duration(seconds: 30 * paths.length);
             _isScanning = false;
           });
         }
@@ -209,6 +260,14 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
           ),
+          if (!kIsWeb) ...[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _selectFilesNative,
+              icon: const Icon(Icons.video_file),
+              label: const Text('Or Select Video Files'),
+            ),
+          ],
         ],
       ),
     );
@@ -378,6 +437,8 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
           videoCount: _videoCount,
           totalDuration: _totalDuration,
           fileNames: _selectedFileNames.isEmpty ? null : _selectedFileNames,
+          sourcePaths:
+              _selectedSourcePaths.isEmpty ? null : _selectedSourcePaths,
         ),
       ),
     );

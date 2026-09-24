@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/ai_provider_selector.dart';
 import '../widgets/output_settings.dart';
+import 'ai_processing_screen.dart';
 
 class ProjectSetupScreen extends ConsumerStatefulWidget {
   final String folderPath;
   final int videoCount;
   final Duration totalDuration;
   final List<String>? fileNames;
+  final List<String>? sourcePaths;
 
   const ProjectSetupScreen({
     super.key,
@@ -15,6 +17,7 @@ class ProjectSetupScreen extends ConsumerStatefulWidget {
     required this.videoCount,
     required this.totalDuration,
     this.fileNames,
+    this.sourcePaths,
   });
 
   @override
@@ -25,7 +28,6 @@ class _ProjectSetupScreenState extends ConsumerState<ProjectSetupScreen> {
   final _promptController = TextEditingController();
   String _selectedProvider = 'Cloud AI';
   double _videoLength = 60.0; // seconds
-  bool _isProcessing = false;
 
   @override
   void dispose() {
@@ -41,45 +43,19 @@ class _ProjectSetupScreenState extends ConsumerState<ProjectSetupScreen> {
       return;
     }
 
-    setState(() => _isProcessing = true);
-    
-    try {
-      // In a real implementation, we would:
-      // 1. Save project settings to temporary storage
-      // 2. Initialize the video processing service with selected provider
-      // 3. Start the processing pipeline
-      
-      // For now, we'll simulate navigation to processing screen
-      if (!mounted) return;
-      
-      // TODO: Uncomment when AI processing screen is fully implemented
-      // Navigator.of(context).push(
-      //   MaterialPageRoute(
-      //     builder: (_) => AIProcessingScreen(
-      //       folderPath: widget.folderPath,
-      //       prompt: _promptController.text,
-      //       provider: _selectedProvider,
-      //       videoLength: _videoLength,
-      //     ),
-      //   ),
-      // );
-      
-      // For now, show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Processing started! (Feature coming soon)')),
-      );
-      
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error starting processing: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-      }
-    }
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AIProcessingScreen(
+          folderPath: widget.folderPath,
+          prompt: _promptController.text.trim(),
+          provider: _selectedProvider,
+          videoLength: _videoLength,
+          fileNames: widget.fileNames,
+          sourcePaths: widget.sourcePaths,
+        ),
+      ),
+    );
   }
 
   @override
@@ -179,20 +155,11 @@ class _ProjectSetupScreenState extends ConsumerState<ProjectSetupScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _isProcessing ? null : _startProcessing,
+                onPressed: _startProcessing,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: _isProcessing
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text('Start AI Processing'),
+                child: const Text('Start AI Processing'),
               ),
             ),
             
