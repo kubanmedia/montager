@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
@@ -16,6 +17,7 @@ class FolderSelectionScreen extends ConsumerStatefulWidget {
 
 class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
   String? _selectedFolderPath;
+  List<String> _selectedFileNames = [];
   String? _selectedProvider;
   int _videoCount = 0;
   Duration _totalDuration = Duration.zero;
@@ -23,8 +25,15 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
 
   Future<void> _selectFolder() async {
     setState(() => _isScanning = true);
-    
+
     try {
+      // Web has no filesystem folder picker (getDirectoryPath is not
+      // implemented on web), so let the user pick video files instead.
+      if (kIsWeb) {
+        await _selectFilesWeb();
+        return;
+      }
+
       String? directoryPath = await FilePicker.platform.getDirectoryPath();
       
       if (directoryPath != null && directoryPath.isNotEmpty) {
@@ -48,6 +57,45 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error selecting folder: $e')),
+        );
+      }
+    }
+  }
+
+  /// Web fallback: pick video files directly since browsers cannot grant
+  /// access to a filesystem folder.
+  Future<void> _selectFilesWeb() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.video,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final names = result.files.map((f) => f.name).toList();
+        if (mounted) {
+          setState(() {
+            _selectedFolderPath = 'Web selection (${names.length} videos)';
+            _selectedFileNames = names;
+            _videoCount = names.length;
+            // Estimate duration - in reality we'd get this from metadata
+            _totalDuration = Duration(seconds: 30 * names.length);
+            _isScanning = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() => _isScanning = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No videos selected')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isScanning = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error selecting videos: $e')),
         );
       }
     }
@@ -155,7 +203,8 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
           ElevatedButton.icon(
             onPressed: _selectFolder,
             icon: const Icon(Icons.folder_open),
-            label: const Text('Select Video Folder'),
+            // ignore: prefer_const_constructors
+            label: Text(kIsWeb ? 'Select Videos' : 'Select Video Folder'),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
@@ -214,6 +263,28 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
                       ),
                     ],
                   ),
+                  if (_selectedFileNames.isNotEmpty) ...[
+                    const Divider(height: 24),
+                    SizedBox(
+                      height: 120,
+                      child: ListView.builder(
+                        itemCount: _selectedFileNames.length,
+                        itemBuilder: (context, i) => Row(
+                          children: [
+                            const Icon(Icons.video_file, size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _selectedFileNames[i],
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                   const Divider(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -250,7 +321,8 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: _selectFolder,
-                  child: const Text('Choose Different Folder'),
+                  // ignore: prefer_const_constructors
+                  child: Text(kIsWeb ? 'Choose Different Videos' : 'Choose Different Folder'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -305,6 +377,7 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
           folderPath: _selectedFolderPath!,
           videoCount: _videoCount,
           totalDuration: _totalDuration,
+          fileNames: _selectedFileNames.isEmpty ? null : _selectedFileNames,
         ),
       ),
     );

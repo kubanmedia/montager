@@ -7,12 +7,14 @@ class ProjectSetupScreen extends ConsumerStatefulWidget {
   final String folderPath;
   final int videoCount;
   final Duration totalDuration;
+  final List<String>? fileNames;
 
   const ProjectSetupScreen({
     super.key,
     required this.folderPath,
     required this.videoCount,
     required this.totalDuration,
+    this.fileNames,
   });
 
   @override
@@ -104,10 +106,12 @@ class _ProjectSetupScreenState extends ConsumerState<ProjectSetupScreen> {
             const SizedBox(height: 16),
             _buildInfoCard(
               Icons.folder,
-              'Source Folder',
-              widget.folderPath.length > 40
-                  ? '...${widget.folderPath.substring(widget.folderPath.length - 40)}'
-                  : widget.folderPath,
+              widget.fileNames != null ? 'Selected Videos' : 'Source Folder',
+              widget.fileNames != null
+                  ? '${widget.fileNames!.length} videos: ${widget.fileNames!.take(3).join(', ')}${widget.fileNames!.length > 3 ? '...' : ''}'
+                  : (widget.folderPath.length > 40
+                      ? '...${widget.folderPath.substring(widget.folderPath.length - 40)}'
+                      : widget.folderPath),
             ),
             const SizedBox(height: 12),
             _buildInfoCard(
