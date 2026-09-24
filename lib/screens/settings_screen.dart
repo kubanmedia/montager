@@ -200,7 +200,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ? Switch(
               value: value ?? false,
               onChanged: onChanged,
-              activeColor: Theme.of(context).colorScheme.primary,
+              activeThumbColor: Theme.of(context).colorScheme.primary,
             )
           : (onTap != null
               ? Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.outline)

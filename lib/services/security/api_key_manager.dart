@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:montager/services/database/video_database.dart';
 
 /// Secure API key manager using flutter_secure_storage
 /// Provides encrypted storage for API keys using platform-specific secure storage:
@@ -9,9 +7,7 @@ import 'package:montager/services/database/video_database.dart';
 /// This satisfies the PRD requirement for secure credential management.
 class ApiKeyManager {
   static const String _apiKeyPrefix = 'montager_api_key_';
-  static const String _OllamaCloudKey = '${_apiKeyPrefix}ollama_cloud';
-  static const String _TogetherAIKey = '${_apiKeyPrefix}together_ai';
-  static const String _LastUsedProvider = '${_apiKeyPrefix}last_provider';
+  static const String _lastUsedProvider = '${_apiKeyPrefix}last_provider';
   
   final FlutterSecureStorage _storage;
   
@@ -34,7 +30,7 @@ class ApiKeyManager {
     await _storage.write(key: key, value: apiKey);
     
     // Also track which provider was last used
-    await _storage.write(key: _LastUsedProvider, value: provider);
+    await _storage.write(key: _lastUsedProvider, value: provider);
   }
 
   /// Retrieves the API key for the specified provider
@@ -47,7 +43,7 @@ class ApiKeyManager {
   /// Gets the most recently used provider
   /// Returns null if no provider has been used yet
   Future<String?> getLastUsedProvider() async {
-    return await _storage.read(key: _LastUsedProvider);
+    return await _storage.read(key: _lastUsedProvider);
   }
 
   /// Removes the API key for the specified provider
@@ -119,7 +115,7 @@ class ApiKeyManager {
 
   /// Gets the storage key name for a provider
   String _getStorageKey(String provider) {
-    return '${_apiKeyPrefix}${provider.toLowerCase()}';
+    return '$_apiKeyPrefix${provider.toLowerCase()}';
   }
 
   /// Tests if the stored API key for a provider is valid
@@ -183,8 +179,8 @@ class ApiKeyManager {
 /// Enum for supported AI providers in Montager
 enum AiProvider {
   ollamaCloud,
-  togetherAi,
-  
+  togetherAi;
+
   String get displayName {
     switch (this) {
       case AiProvider.ollamaCloud: return 'Ollama Cloud';

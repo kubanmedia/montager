@@ -1,6 +1,5 @@
 import 'dart:io';
-import 'package:montager/services/database/video_database.dart';
-import 'package:montager/services/database/database_module.dart';
+import 'package:montager/services/database/embedding_service.dart';
 import '../video/ffmpeg_service.dart';
 
 /// Service that combines video frame extraction with embedding generation
@@ -8,12 +7,10 @@ import '../video/ffmpeg_service.dart';
 class VideoAnalysisService {
   final FFmpegService _ffmpegService;
   final EmbeddingService _embeddingService;
-  final AppDatabase _database;
 
   VideoAnalysisService()
       : _ffmpegService = FFmpegService(),
-        _embeddingService = EmbeddingService(),
-        _database = database;
+        _embeddingService = EmbeddingService();
 
   /// Analyzes a video file and creates a searchable index of its content
   Future<void> analyzeVideo(String videoPath) async {
@@ -37,8 +34,8 @@ class VideoAnalysisService {
       format: (metadata['format'] as String?) ?? 'unknown',
       codec: (metadata['codecName'] as String?) ?? 'unknown',
       frameRate: _parseFrameRate(metadata['avgFrameRate'] as String?),
-      totalFrames: ((metadata['duration'] as double?) ?? 0.0) *
-          ((_parseFrameRate(metadata['avgFrameRate'] as String?)) ?? 30.0),
+      totalFrames: (((metadata['duration'] as double?) ?? 0.0) *
+          _parseFrameRate(metadata['avgFrameRate'] as String?)).toInt(),
     );
 
     // Extract frames at optimal intervals for analysis (1 per 1-3 seconds)

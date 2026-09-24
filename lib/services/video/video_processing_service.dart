@@ -1,14 +1,13 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import '../ai/providers/ai_provider.dart';
-import 'ffmpeg_service.dart';
 import 'video_editor.dart';
 
 /// Service that orchestrates the complete video processing pipeline:
 // AI Analysis -> Planning -> Editing -> Export
 class VideoProcessingService {
   final AIProvider _aiProvider;
-  final FFmpegService _ffmpegService;
   final VideoEditor _videoEditor;
   final String _tempDir;
 
@@ -16,7 +15,6 @@ class VideoProcessingService {
     required AIProvider aiProvider,
     String? tempDir,
   })  : _aiProvider = aiProvider,
-        _ffmpegService = FFmpegService(),
         _videoEditor = VideoEditor(tempDir: tempDir),
         _tempDir = tempDir ?? Directory.systemTemp.createTempSync('video_proc_').path;
 
@@ -84,7 +82,8 @@ class VideoProcessingService {
     final directory = Directory(folderPath);
 
     try {
-      await for (final entity in directory.listRecursively(
+      await for (final entity in directory.list(
+        recursive: true,
         followLinks: false,
       )) {
         if (entity is File) {

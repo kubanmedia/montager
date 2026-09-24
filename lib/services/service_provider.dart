@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/video/video_processing_service.dart';
 import '../services/ai/providers/ai_provider.dart';
-import '../services/ai/providers/ai_provider.dart' show AIProviderFactory;
 import '../services/security/api_key_manager.dart';
 
 // Provider for the API key manager

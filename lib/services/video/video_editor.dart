@@ -1,6 +1,6 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
-import '../ai/providers/ai_provider.dart';
 import 'ffmpeg_service.dart';
 
 /// Orchestrates the video editing process based on AI-generated plans
@@ -48,15 +48,18 @@ class VideoEditor {
         editPlan: editPlan,
       );
 
-      // Step 3: Concatenate all processed clips
+      // Step 3: Concatenate all processed clips with transitions
       final clipPaths = processedClips.map((clip) => clip['path'] as String).toList();
+      final clipMetadata =
+          processedClips.map((clip) => clip['metadata'] as Map<String, dynamic>).toList();
       
       if (clipPaths.isEmpty) {
         throw Exception('No clips were generated from the edit plan');
       }
 
-      final finalPath = await _ffmpeg.concatenateVideos(
-        inputPaths: clipPaths,
+      final finalPath = await _applyTransitions(
+        clipPaths: clipPaths,
+        clipMetadata: clipMetadata,
         outputPath: outputPath,
       );
 
@@ -109,7 +112,6 @@ class VideoEditor {
       final endTime = (segment['endTime'] as num?)?.toDouble() ?? 0.0;
       final transitionIn = segment['transitionIn'] as String? ?? 'none';
       final transitionOut = segment['transitionOut'] as String? ?? 'none';
-      final duration = segment['duration'] as num? ?? (endTime - startTime);
       
       // Validate video index
       if (videoIndex < 0 || videoIndex >= videoPaths.length) {
@@ -193,8 +195,8 @@ class VideoEditor {
             inputPath: currentPath,
             outputPath: tempPath,
             brightness: (colorCorrection['brightness'] as num?)?.toDouble() ?? 0.0,
-            contrast: (colorCorrection['contrast'] as num?)?.toDouble() => 1.0,
-            saturation: (colorCorrection['saturation'] as num?)?.toDouble() => 1.0,
+            contrast: (colorCorrection['contrast'] as num?)?.toDouble() ?? 1.0,
+            saturation: (colorCorrection['saturation'] as num?)?.toDouble() ?? 1.0,
           );
           
           currentPath = tempPath;
@@ -295,7 +297,7 @@ class VideoEditor {
   Future<void> _cleanupTempFiles(List<String> filesToKeep) async {
     try {
       final tempDir = Directory(_tempDir);
-      if await tempDir.exists() {
+      if (await tempDir.exists()) {
         final files = tempDir.listSync();
         
         for (final file in files) {
@@ -323,7 +325,7 @@ class VideoEditor {
     await _cleanupTempFiles([]);
     try {
       final tempDir = Directory(_tempDir);
-      if await tempDir.exists() {
+      if (await tempDir.exists()) {
         await tempDir.delete(recursive: true);
       }
     } catch (e) {

@@ -18,8 +18,13 @@ dependencies:
   # Secure storage for API keys (Keystore/Keychain)
   flutter_secure_storage: ^9.0.0
   # Data persistence
-  drift: ^2.9.0
-  sqlite3_flutter_libs: ^0.5.8
+  # Using version compatible with newer sqlite3
+  drift: ^2.12.0
+  # sqlite3_flutter_libs only for mobile/desktop - not compatible with web
+  # Using compatible version for Dart 3.x
+  sqlite3_flutter_libs:
+    hosted: https://pub.dev
+    version: ^0.5.12
   path_provider: ^2.0.11
   path: ^1.8.3
   # Async handling
@@ -42,13 +47,15 @@ dependencies:
   equatable: ^2.0.5
   # HTTP client for AI provider API calls
   http: ^1.2.2
+  # Annotations such as @protected
+  meta: ^1.12.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
   # Code generation for drift
-  drift_dev: ^2.9.0
+  drift_dev: ^2.12.0
   build_runner: ^2.4.6
   # JSON serialization
   json_serializable: ^6.7.1
@@ -56,9 +63,13 @@ dev_dependencies:
   mocktail: ^0.3.0
   test: ^1.24.0
 
+# Override sqlite3_flutter_libs to prevent FFI usage in web builds
+# The actual web compatibility is handled in video_database.dart via kIsWeb check
+dependency_overrides:
+  sqlite3_flutter_libs: ^0.5.12
+
 flutter:
   uses-material-design: true
   assets:
     - assets/icons/
     - assets/images/
-    - assets/images/logo.png

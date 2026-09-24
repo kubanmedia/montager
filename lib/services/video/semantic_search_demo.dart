@@ -1,6 +1,6 @@
-import 'dart:io';
-import 'package:montager/services/database/video_database.dart';
+// ignore_for_file: avoid_print
 import 'package:montager/services/database/database_module.dart';
+import 'package:montager/services/database/embedding_service.dart';
 
 /// Demonstration of how the semantic search system works for the Montager app
 class SemanticSearchDemo {
@@ -9,8 +9,8 @@ class SemanticSearchDemo {
     print('🎬 Montager Semantic Search Demo');
     print('=' * 50);
     
-    // Initialize database
-    final db = database;
+    // Initialize database (ensures DI container is touched)
+    database;
     print('✅ Database initialized');
     
     // Initialize services
@@ -80,9 +80,9 @@ class SemanticSearchDemo {
       for (final result in searchResults) {
         print('   🎯 ${result.description}');
         print('      📍 ${result.videoPath} at ${result.timestampSeconds.toStringAsFixed(1)}s');
-        print('      🏷️  Scene: ${result.scene} | Objects: ${result.objects.join(', ')}');
+        print('      🏷️  Scene: ${result.scene} | Objects: ${result.objects}');
         print('      ⭐ Quality: ${result.qualityScore.toStringAsFixed(2)}');
-        print();
+        print('');
       }
       
       // Step 4: Show semantic similarity capabilities
@@ -137,9 +137,3 @@ class VideoAnalysisService {
     await Future.delayed(const Duration(seconds: 2));
   }
 }
-
-/// Placeholder for embedding service access
-Extension<Extension> on Object {
-  EmbeddingService get embeddingService => EmbeddingService();
-}
-Extension extension = Extension();

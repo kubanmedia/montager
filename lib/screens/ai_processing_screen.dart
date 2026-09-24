@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/video/video_processing_service.dart';
-import 'video_preview_screen.dart';
+import "../services/service_provider.dart";
 
 class AIProcessingScreen extends ConsumerStatefulWidget {
   final String folderPath;
@@ -48,8 +47,8 @@ class _AIProcessingScreenState extends ConsumerState<AIProcessingScreen> {
     });
 
     try {
-      // Get the video processing service
-      final videoService = ref.read(videoProcessingServiceProvider);
+      // Ensure the video processing service is available
+      await ref.read(videoProcessingServiceProvider(widget.provider).future);
       
       // Update progress as we go through steps
       await _updateProgress(0.1, 'Scanning video files...');
@@ -135,15 +134,6 @@ class _AIProcessingScreenState extends ConsumerState<AIProcessingScreen> {
     Navigator.of(context).pop();
   }
 
-  void _exportVideo() {
-    if (_outputPath != null) {
-      // TODO: Implement sharing/export functionality
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Export functionality coming soon!')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -186,7 +176,7 @@ class _AIProcessingScreenState extends ConsumerState<AIProcessingScreen> {
                 height: 8,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(4),
-                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 ),
               ),
               FractionallySizedBox(
@@ -209,7 +199,7 @@ class _AIProcessingScreenState extends ConsumerState<AIProcessingScreen> {
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
-          textAlign: TextAlign.Center,
+          textAlign: TextAlign.center,
         ),
         const SizedBox(height: 24),
         // Steps list
@@ -234,7 +224,7 @@ class _AIProcessingScreenState extends ConsumerState<AIProcessingScreen> {
                         shape: BoxShape.circle,
                         color: isCompleted
                             ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.surfaceVariant,
+                            : Theme.of(context).colorScheme.surfaceContainerHighest,
                       ),
                       child: isCompleted
                           ? const Icon(
@@ -289,7 +279,7 @@ class _AIProcessingScreenState extends ConsumerState<AIProcessingScreen> {
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            textAlign: TextAlign.Center,
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
           ElevatedButton.icon(
@@ -315,10 +305,10 @@ class _AIProcessingScreenState extends ConsumerState<AIProcessingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             Icons.check_circle_outline,
             size: 80,
-            color: Theme.of(context).colorScheme.success,
+            color: Colors.green,
           ),
           const SizedBox(height: 24),
           Text(
@@ -333,7 +323,7 @@ class _AIProcessingScreenState extends ConsumerState<AIProcessingScreen> {
             style: TextStyle(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            textAlign: TextAlign.Center,
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
           Row(

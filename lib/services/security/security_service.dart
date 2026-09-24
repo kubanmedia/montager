@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:path/path.dart' as path;
 
 /// Security service for Montager that provides threat detection and protection
@@ -191,7 +192,7 @@ class SecurityService {
           await _logSecurityEvent(
               'PLACEHOLDER_API_KEY', 
               'Placeholder API key detected for provider: $providerName', 
-              apiKey.substring(0, Math.min(10, apiKey.length)));
+              apiKey.substring(0, math.min(10, apiKey.length)));
           return false;
         }
       }
@@ -203,7 +204,7 @@ class SecurityService {
             await _logSecurityEvent(
                 'INVALID_OPENAI_KEY_FORMAT', 
                 'OpenAI API key should start with sk-', 
-                apiKey.substring(0, Math.min(10, apiKey.length)));
+                apiKey.substring(0, math.min(10, apiKey.length)));
             return false;
           }
           break;
@@ -212,7 +213,7 @@ class SecurityService {
             await _logSecurityEvent(
                 'INVALID_ANTHROPIC_KEY_FORMAT', 
                 'Anthropic API key should start with sk-ant-', 
-                apiKey.substring(0, Math.min(10, apiKey.length)));
+                apiKey.substring(0, math.min(10, apiKey.length)));
             return false;
           }
           break;
@@ -223,7 +224,7 @@ class SecurityService {
             await _logSecurityEvent(
                 'INVALID_TOGETHER_KEY_FORMAT', 
                 'Together API key seems too short', 
-                apiKey.substring(0, Math.min(10, apiKey.length)));
+                apiKey.substring(0, math.min(10, apiKey.length)));
             return false;
           }
           break;
@@ -235,7 +236,7 @@ class SecurityService {
       await _logSecurityEvent(
           'API_KEY_VALIDATION_PASSED', 
           'API key validation passed for provider: $providerName', 
-          apiKey.substring(0, Math.min(10, apiKey.length)));
+          apiKey.substring(0, math.min(10, apiKey.length)));
       return true;
     } catch (e) {
       await _logSecurityEvent(
@@ -251,27 +252,21 @@ class SecurityService {
     try {
       // Check for embedded scripts or executable content in video files
       final file = File(filePath);
-      final randomAccess = file.openRead();
       
       // Read first and last few KB to check for suspicious content
       const sampleSize = 8192; // 8KB samples
-      final List<int> headBytes = [];
-      final List<int> tailBytes = [];
-      
-      // Read head
-      await for (final byte in randomAccess.take(sampleSize)) {
-        headBytes.add(byte);
-      }
-      await randomAccess.close();
+      final fileLength = await file.length();
+      final headEnd = fileLength < sampleSize ? fileLength : sampleSize;
+      final List<int> headBytes = await file
+          .openRead(0, headEnd)
+          .fold<List<int>>([], (prev, el) => prev..addAll(el));
+      List<int> tailBytes = [];
       
       // Read tail (seek to end - sampleSize)
-      final fileLength = await file.length();
       if (fileLength > sampleSize * 2) {
-        final tailReader = file.openRead(fileLength - sampleSize);
-        await for (final byte in tailReader.take(sampleSize)) {
-          tailBytes.add(byte);
-        }
-        await tailReader.close();
+        tailBytes = await file
+            .openRead(fileLength - sampleSize)
+            .fold<List<int>>([], (prev, el) => prev..addAll(el));
       }
 
       // Check for suspicious patterns
@@ -338,7 +333,7 @@ class SecurityService {
       String description, 
       String detail) async {
     try {
-      final logDir = Directory('${_securaAgentPath}/logs');
+      final logDir = Directory('$_securaAgentPath/logs');
       if (!await logDir.exists()) {
         await logDir.create(recursive: true);
       }
@@ -358,7 +353,7 @@ class SecurityService {
   /// Gets the current security status/logs
   Future<String> getSecurityStatus() async {
     try {
-      final logDir = Directory('${_securaAgentPath}/logs');
+      final logDir = Directory('$_securaAgentPath/logs');
       if (!await logDir.exists()) {
         return 'No security logs available';
       }
@@ -374,10 +369,10 @@ class SecurityService {
         return 'No security events logged today';
       }
 
-      final latestLog = todayLogs.reduce((a, b) => 
-          a.stat().modified > b.stat().modified ? a : b);
+      final latestLog = todayLogs.reduce((a, b) =>
+          a.statSync().modified.isAfter(b.statSync().modified) ? a : b);
       
-      final content = await latestLog.readAsString();
+      final content = await (latestLog as File).readAsString();
       return content.trim().isEmpty 
           ? 'No security events recorded' 
           : content.trim();

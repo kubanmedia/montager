@@ -1,4 +1,6 @@
-import 'dart:io';
+// ignore_for_file: avoid_print
+
+import 'api_key_manager.dart';
 
 /// Demonstration of the API key management system for Montager
 class ApiKeyDemo {
@@ -56,6 +58,14 @@ class ApiKeyDemo {
       final masked = ollamaKey.replaceRange(4, ollamaKey.length - 4, '*' * (ollamaKey.length - 8));
       print('   Ollama Cloud Key: $masked');
     }
-    
-    #ERROR
-    Max turns (10) exceeded
+
+    // Demo validation
+    print('\n✅ Step 3: Validating stored keys');
+    final hasTogether = await apiKeyManager.hasApiKey('together_ai');
+    final hasOllama = await apiKeyManager.hasApiKey('ollama_cloud');
+    print('   Together AI configured: $hasTogether');
+    print('   Ollama Cloud configured: $hasOllama');
+
+    print('\n🎉 Demo completed successfully!');
+  }
+}

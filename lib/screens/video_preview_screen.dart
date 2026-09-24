@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
@@ -30,14 +32,31 @@ class _VideoPreviewScreenState extends ConsumerState<VideoPreviewScreen> {
   }
 
   Future<void> _initializeVideo() async {
-    _controller = VideoPlayerController.network(
-        'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-      )..initialize().then((_) {
-          // Ensure the first frame is shown after the video is initialized
-          setState(() {
-            _isInitialized = true;
-          });
-        });
+    if (widget.videoPath.startsWith('http')) {
+      _controller =
+          VideoPlayerController.networkUrl(Uri.parse(widget.videoPath));
+    } else if (widget.videoPath.isNotEmpty) {
+      _controller = VideoPlayerController.file(File(widget.videoPath));
+    } else {
+      _controller = VideoPlayerController.networkUrl(
+        Uri.parse(
+            'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4'),
+      );
+    }
+
+    try {
+      await _controller.initialize();
+    } catch (_) {
+      // Initialization failed; the loading indicator stays visible.
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _isInitialized = true;
+    });
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -66,52 +85,13 @@ class _VideoPreviewScreenState extends ConsumerState<VideoPreviewScreen> {
   }
 
   void _reprocess() {
-    // TODO: Navigate back to project setup with current settings
+    Navigator.of(context).pop();
   }
 
   void _exportVideo() {
-    // TODO: Implement sharing/export functionality
-  }
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = twoDigits(duration.inHours);
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    return '$hours:$minutes:$seconds';
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _togglePlay() {
-    if (_controller.value.isPlaying) {
-      _controller.pause();
-    } else {
-      _controller.play();
-    }
-    setState(() => _isPlaying = !_isPlaying);
-  }
-
-  void _toggleMute() {
-    setState(() => _isMuted = !_isMuted);
-    _controller.setVolume(_isMuted ? 0.0 : _volume);
-  }
-
-  void _setVolume(double volume) {
-    setState(() => _volume = volume);
-    if (!_isMuted) {
-      _controller.setVolume(volume);
-    }
-  }
-
-  void _reprocess() {
-    // TODO: Navigate back to project setup with current settings
-  }
-
-  void _exportVideo() {
-    // TODO: Implement sharing/export functionality
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Export functionality coming soon!')),
+    );
   }
 
   String _formatDuration(Duration duration) {
@@ -119,7 +99,7 @@ class _VideoPreviewScreenState extends ConsumerState<VideoPreviewScreen> {
     final hours = twoDigits(duration.inHours);
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return "$hours:$minutes:$seconds";
+    return '$hours:$minutes:$seconds';
   }
 
   @override
@@ -147,19 +127,28 @@ class _VideoPreviewScreenState extends ConsumerState<VideoPreviewScreen> {
                     child: VideoPlayer(_controller),
                   ),
                 ),
-                
+
                 // Video controls
                 Container(
-                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  color:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Progress bar
                       Slider(
-                        value: _controller.value.position.inMilliseconds.toDouble(),
+                        value: _controller.value.position.inMilliseconds
+                            .toDouble()
+                            .clamp(
+                                0.0,
+                                _controller.value.duration.inMilliseconds
+                                        .toDouble() +
+                                    1.0),
                         min: 0,
-                        max: _controller.value.duration.inMilliseconds.toDouble(),
+                        max: _controller.value.duration.inMilliseconds
+                                .toDouble() +
+                            1.0,
                         onChanged: (value) {
                           _controller.seekTo(
                             Duration(milliseconds: value.toInt()),
@@ -182,14 +171,16 @@ class _VideoPreviewScreenState extends ConsumerState<VideoPreviewScreen> {
                           ],
                         ),
                       ),
-                      
+
                       // Controls
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           IconButton(
                             icon: Icon(
-                              _isPlaying ? Icons.pause_circle_filled : Icons.play_circle,
+                              _isPlaying
+                                  ? Icons.pause_circle_filled
+                                  : Icons.play_circle,
                               size: 36,
                             ),
                             onPressed: _togglePlay,
@@ -217,7 +208,7 @@ class _VideoPreviewScreenState extends ConsumerState<VideoPreviewScreen> {
                     ],
                   ),
                 ),
-                
+
                 // Video info and actions
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -228,7 +219,10 @@ class _VideoPreviewScreenState extends ConsumerState<VideoPreviewScreen> {
                           Expanded(
                             child: Text(
                               '${widget.editPlan['suggestedTitle'] ?? 'AI Generated Video'}',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                             ),
@@ -246,15 +240,16 @@ class _VideoPreviewScreenState extends ConsumerState<VideoPreviewScreen> {
                         '${widget.editPlan['recommendedMusic'] ?? 'Default Music'} • '
                         '${widget.editPlan['suggestedNarraton']?.isNotEmpty == true ? 'With Narration' : 'No Narration'}',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 14,
                         ),
-                        textAlign: TextAlign.Center,
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
-                
+
                 // Action buttons
                 Padding(
                   padding: const EdgeInsets.all(16),

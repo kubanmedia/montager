@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/ai_provider_selector.dart';
 import '../widgets/output_settings.dart';
-import 'ai_processing_screen.dart';
 
 class ProjectSetupScreen extends ConsumerStatefulWidget {
   final String folderPath;
@@ -150,7 +149,11 @@ class _ProjectSetupScreenState extends ConsumerState<ProjectSetupScreen> {
                   ),
             ),
             const SizedBox(height: 8),
-            const AIProviderSelector(),
+            AIProviderSelector(
+              value: _selectedProvider,
+              onChanged: (value) =>
+                  setState(() => _selectedProvider = value ?? _selectedProvider),
+            ),
             
             const SizedBox(height: 24),
             
@@ -161,7 +164,11 @@ class _ProjectSetupScreenState extends ConsumerState<ProjectSetupScreen> {
                   ),
             ),
             const SizedBox(height: 8),
-            const OutputSettings(),
+            OutputSettings(
+              videoLength: _videoLength,
+              onLengthChanged: (value) =>
+                  setState(() => _videoLength = value),
+            ),
             
             const SizedBox(height: 32),
             

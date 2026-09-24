@@ -1,7 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
-import '../services/video/video_processing_service.dart';
+import 'package:path/path.dart' as p;
 import '../widgets/ai_provider_selector.dart';
 import 'project_setup_screen.dart';
 
@@ -14,6 +16,7 @@ class FolderSelectionScreen extends ConsumerStatefulWidget {
 
 class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
   String? _selectedFolderPath;
+  String? _selectedProvider;
   int _videoCount = 0;
   Duration _totalDuration = Duration.zero;
   bool _isScanning = false;
@@ -61,12 +64,12 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
       
       // In a real implementation, we would get actual durations
       // For now, we'll estimate based on file count
-      await for (final entity 
-          in Directory(directoryPath).listRecursively(followLinks: false)) {
+      await for (final entity
+          in Directory(directoryPath).list(recursive: true, followLinks: false)) {
         if (entity is File) {
-          final extension = 
-              extension(entity.path.toLowerCase()).toLowerCase();
-          if (videoExtensions.contains(extension)) {
+          final ext =
+              p.extension(entity.path.toLowerCase()).toLowerCase();
+          if (videoExtensions.contains(ext)) {
             count++;
             // Estimate duration - in reality we'd get this from metadata
             // For demo purposes, assume average 30 seconds per video
@@ -131,7 +134,7 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
           Icon(
             Icons.folder_open,
             size: 80,
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 24),
           Text(
@@ -234,7 +237,10 @@ class _FolderSelectionScreenState extends ConsumerState<FolderSelectionScreen> {
           const SizedBox(height: 24),
           
           // AI Provider Selection
-          const AIProviderSelector(),
+          AIProviderSelector(
+            value: _selectedProvider,
+            onChanged: (value) => setState(() => _selectedProvider = value),
+          ),
           
           const SizedBox(height: 24),
           

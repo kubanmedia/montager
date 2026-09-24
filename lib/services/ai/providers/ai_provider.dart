@@ -1,11 +1,13 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 import 'together_provider.dart';
 import 'ollama_cloud_provider.dart';
-
-import 'ai_provider_factory.dart';
 
 /// Abstract base class for AI providers
 abstract class AIProvider {
@@ -49,6 +51,10 @@ abstract class CloudAIProvider implements AIProvider {
     // Specific providers can override if needed
   }
 
+  /// Base endpoint URL (trailing slashes stripped).
+  @protected
+  String get endpoint => _endpoint;
+
   @protected
   Map<String, String> getAuthHeaders() {
     return {
@@ -67,6 +73,9 @@ class OpenAIProvider extends CloudAIProvider {
     String modelName = 'gpt-4-vision-preview',
   }) : _modelName = modelName,
        super(apiKey: apiKey, endpoint: 'https://api.openai.com/v1');
+
+  /// Vision model name.
+  String get modelName => _modelName;
 
   @override
   Future<Map<String, dynamic>> analyzeVideo(String videoPath) async {
@@ -170,6 +179,9 @@ class GeminiProvider extends CloudAIProvider {
   }) : _modelName = modelName,
        super(apiKey: apiKey, endpoint: 'https://generativelanguage.googleapis.com/v1beta/models');
 
+  /// Vision model name.
+  String get modelName => _modelName;
+
   @override
   Future<Map<String, dynamic>> analyzeVideo(String videoPath) async {
     await Future.delayed(const Duration(seconds: 2));
@@ -241,6 +253,9 @@ class ClaudeProvider extends CloudAIProvider {
     String modelName = 'claude-3-opus-20240229',
   }) : _modelName = modelName,
        super(apiKey: apiKey, endpoint: 'https://api.anthropic.com/v1');
+
+  /// Model name.
+  String get modelName => _modelName;
 
   @override
   Future<Map<String, dynamic>> analyzeVideo(String videoPath) async {
@@ -491,7 +506,6 @@ abstract class LocalLLMProvider implements AIProvider {
 
   @override
   Future<void> dispose() async {
-    _client.close();
     // Clean up local resources
   }
 }
@@ -1071,7 +1085,7 @@ class AIProviderFactory {
         );
       case 'Hugging Face':
         return HuggingFaceProvider(
-          apiKey: config['apiKey'] ?? '',
+          apiToken: config['apiKey'] ?? '',
           apiUrl: config['apiUrl'],
         );
       case 'Together AI':
@@ -1120,6 +1134,15 @@ class CustomEndpointProvider implements AIProvider {
   })  : _endpointUrl = endpointUrl,
         _apiKey = apiKey,
         _headers = headers ?? {};
+
+  /// Custom endpoint URL.
+  String get endpointUrl => _endpointUrl;
+
+  /// Optional API key for the custom endpoint.
+  String? get apiKey => _apiKey;
+
+  /// Extra headers sent with custom endpoint requests.
+  Map<String, String> get headers => _headers;
 
   @override
   Future<void> initialize(Map<String, String> config) async {

@@ -1,7 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
-import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 
 /// Service for handling FFmpeg video processing operations
@@ -277,7 +274,7 @@ class FFmpegService {
       await Future.delayed(const Duration(milliseconds: 1500));
       
       // For simulation, concatenate the two files
-      final tempList = await _createTempFileList([input1Path, input2Path]);
+      await _createTempFileList([input1Path, input2Path]);
       final tempOutput = '$outputPath.temp.mp4';
       await concatenateVideos(
         inputPaths: [input1Path, input2Path],
@@ -604,17 +601,17 @@ class FFmpegService {
     
     // Simulate scene changes every 2-8 seconds with some randomness
     double currentTime = 2.0; // Start after first 2 seconds
-    final random = DateTime.now().millisecondsSinceEpoch % 1000; // Simple seed
+    int seed = DateTime.now().millisecondsSinceEpoch % 1000; // Simple seed
     
     while (currentTime < duration - 1) { // Leave 1 second at end
       sceneChanges.add(currentTime);
       
       // Next scene change: 2-8 seconds later (simulating variable scene lengths)
-      final double interval = 2.0 + (random % 60) / 10.0; // 2.0 to 8.0 seconds
+      final double interval = 2.0 + (seed % 60) / 10.0; // 2.0 to 8.0 seconds
       currentTime += interval;
       
-      // Update "seed" for next iteration
-      final int newSeed = (random * 17 + 31) % 1000;
+      // Update seed for next iteration
+      seed = (seed * 17 + 31) % 1000;
     }
     
     return sceneChanges;
@@ -825,9 +822,10 @@ class FFmpegService {
   Future<String> _createTempFileList(List<String> filePaths) async {
     final tempDir = Directory.systemTemp.createTempSync('ffmpeg_concat_');
     final listFile = File('${tempDir.path}/filelist.txt');
-    final content = filePaths.map((path) => "file '$path'").toList().join(n);
+    final content =
+        filePaths.map((p) => "file '$p'").toList().join('\n');
+    await listFile.writeAsString(content);
     return listFile.path;
-  }
   }
 }
 
@@ -892,21 +890,17 @@ class FFmpegFilterBuilder {
 
 /// Result of a video processing operation
 class FFmpegResult {
-  final {
-  final String message processingTimeMs;
-  final bool bool get message;
-
-  factory FFmpegResult.success({
-    required this.message success,
-    this.processingTimeMs);
   final bool success;
   final String? errorMessage;
   final String? outputPath;
+  final String? message;
+  final int processingTimeMs;
   final Map<String, dynamic>? metadata;
 
   const FFmpegResult.success({
     required this.outputPath,
-    required this.outputPath,
+    this.message,
+    this.processingTimeMs = 0,
     this.metadata,
   })  : success = true,
         errorMessage = null;
@@ -915,6 +909,7 @@ class FFmpegResult {
     required this.errorMessage,
   })  : success = false,
         outputPath = null,
+        message = null,
         processingTimeMs = 0,
         metadata = null;
 

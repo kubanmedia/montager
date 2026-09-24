@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:math';
+import 'package:drift/drift.dart';
 import 'package:montager/services/database/video_database.dart';
 import 'package:montager/services/database/database_module.dart';
 
@@ -19,7 +20,7 @@ class EmbeddingService {
     // Placeholder implementation - in reality, call an embedding model
     // For now, return a deterministic hash-based vector for demo purposes
     final hashValues = _stringToHashValues(text);
-    final vectorLength = 384; // Common embedding size
+    const vectorLength = 384; // Common embedding size
     
     // Normalize to unit vector
     final List<double> embedding = List.filled(vectorLength, 0.0);
@@ -48,7 +49,7 @@ class EmbeddingService {
     // Placeholder implementation
     // In production, use CLIP, DINOv2, or similar vision-language model
     final hashValues = _bytesToHashValues(imageBytes);
-    final vectorLength = 512; // Common image embedding size
+    const vectorLength = 512; // Common image embedding size
     
     final List<double> embedding = List.filled(vectorLength, 0.0);
     for (int i = 0; i < vectorLength; i++) {
@@ -103,7 +104,7 @@ class EmbeddingService {
         timestampSeconds: timestampSeconds,
         embedding: embeddingBytes,
         description: description,
-        objects: '[' + objects.map((e) => '"$e"').join(',') + ']',
+        objects: '[${objects.map((e) => '"$e"').join(',')}]',
         scene: scene,
         qualityScore: qualityScore,
       ),
@@ -112,9 +113,9 @@ class EmbeddingService {
 
   /// Retrieves stored embedding for a specific frame
   Future<List<double>?> getFrameEmbedding(String videoPath, int frameNumber) async {
-    final results = await (select(_database.videoEmbeddings)
-          ..where((tbl) => 
-            tbl.videoPath.equals(videoPath) & 
+    final results = await (_database.select(_database.videoEmbeddings)
+          ..where((tbl) =>
+            tbl.videoPath.equals(videoPath) &
             tbl.frameNumber.equals(frameNumber)))
         .get();
     
@@ -124,7 +125,7 @@ class EmbeddingService {
   }
 
   /// Searches for similar frames using embedding similarity
-  Future<List<VideoEmbeddingData>> searchSimilarFrames(
+  Future<List<VideoEmbedding>> searchSimilarFrames(
     List<double> queryEmbedding, {
       int limit = 10,
       double similarityThreshold = 0.7,
@@ -137,7 +138,7 @@ class EmbeddingService {
   }
 
   /// Finds video segments relevant to a text query
-  Future<List<VideoEmbeddingData>> searchByText(String queryText, {
+  Future<List<VideoEmbedding>> searchByText(String queryText, {
       int limit = 20,
       double similarityThreshold = 0.6,
     }) async {
@@ -150,7 +151,7 @@ class EmbeddingService {
   }
 
   /// Gets all embeddings for a specific video
-  Future<List<VideoEmbeddingData>> getVideoEmbeddings(String videoPath) async {
+  Future<List<VideoEmbedding>> getVideoEmbeddings(String videoPath) async {
     return await _database.getVideoEmbeddingsByPath(videoPath);
   }
 

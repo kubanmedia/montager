@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'screens/home_screen.dart';
-import 'screens/folder_selection_screen.dart';
-import 'screens/project_setup_screen.dart';
-import 'screens/ai_processing_screen.dart';
-import 'screens/video_preview_screen.dart';
-import 'screens/settings_screen.dart';
-import 'services/service_provider.dart';
 
 void main() {
   runApp(
