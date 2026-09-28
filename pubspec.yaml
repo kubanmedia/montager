@@ -1,7 +1,10 @@
 name: montager
 description: AI Video Editor Agent - Automatically creates complete videos from user's existing raw footage using multimodal AI.
-publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0
+homepage: https://montager.digita.click/
+repository: https://github.com/kubanmedia/montager
+issue_tracker: https://github.com/kubanmedia/montager/issues
+
 environment:
   sdk: '>=3.3.0 <4.0.0'
 
@@ -22,9 +25,7 @@ dependencies:
   drift: ^2.12.0
   # sqlite3_flutter_libs only for mobile/desktop - not compatible with web
   # Using compatible version for Dart 3.x
-  sqlite3_flutter_libs:
-    hosted: https://pub.dev
-    version: ^0.5.12
+  sqlite3_flutter_libs: ^0.5.12
   path_provider: ^2.0.11
   path: ^1.8.3
   # Async handling
@@ -47,6 +48,8 @@ dependencies:
   equatable: ^2.0.5
   # HTTP client for AI provider API calls
   http: ^1.2.2
+  # Persistent simple preferences (settings screen)
+  shared_preferences: ^2.3.3
   # Annotations such as @protected
   meta: ^1.12.0
 
@@ -62,11 +65,6 @@ dev_dependencies:
   # Testing
   mocktail: ^0.3.0
   test: ^1.24.0
-
-# Override sqlite3_flutter_libs to prevent FFI usage in web builds
-# The actual web compatibility is handled in video_database.dart via kIsWeb check
-dependency_overrides:
-  sqlite3_flutter_libs: ^0.5.12
 
 flutter:
   uses-material-design: true
